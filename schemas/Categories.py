@@ -12,3 +12,4 @@ class CategoryCreate(CategoryBase):
 
 class CategoryOut(CategoryBase):
     id: int
+    user_id: int

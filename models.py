@@ -14,7 +14,9 @@ class User(Base):
     last_name: Mapped[str] = mapped_column(String(length=100))
     hashed_password: Mapped[str] = mapped_column(String(length=200))
     role: Mapped[Roles] = mapped_column(String(length=50), default=Roles.USER, nullable=True)
+    
     profile: Mapped['Profile'] = relationship(back_populates='user', cascade='all, delete-orphan')
+    categories: Mapped[list['Category']] = relationship(back_populates="user")
 
 
 class Profile(Base):
@@ -28,7 +30,7 @@ class Profile(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
     user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
-    user: Mapped[User] = relationship(back_populates='profile')
+    user: Mapped['User'] = relationship(back_populates='profile')
 
 
 class Category(Base):
@@ -37,8 +39,11 @@ class Category(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(length=100), unique=True)
     description: Mapped[str] = mapped_column(String(length=500), nullable=True)
+    
+    user_id = Column(Integer, ForeignKey("users.id"))
+    user: Mapped['User'] = relationship(back_populates='categories')
 
-    products: Mapped[list['Product']] = relationship(back_populates='category')
+    products: Mapped[list['Product']] = relationship(back_populates='category', cascade='all, delete-orphan')
 
 
 product_tags = Table(
@@ -58,9 +63,8 @@ class Product(Base):
     price: Mapped[float] = mapped_column(Float, nullable=False)
 
     category_id: Mapped[int] = mapped_column(ForeignKey('categories.id'))
-    category: Mapped[Category] = relationship(back_populates='products')
-
-    tags: Mapped[list['Tag']] = relationship(back_populates='products', secondary='product_tags')
+    category: Mapped['Category'] = relationship(back_populates='products')
+    tags: Mapped[list['Tag']] = relationship(back_populates='products', secondary=product_tags)
 
 
 class Tag(Base):
@@ -68,5 +72,4 @@ class Tag(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(length=50), unique=True, nullable=False)
-
-    products: Mapped[list['Product']] = relationship(back_populates='tags', secondary='product_tags')
+    products: Mapped[list['Product']] = relationship(back_populates='tags', secondary=product_tags)
